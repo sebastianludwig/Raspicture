@@ -6,9 +6,11 @@ require 'JSON'
 PICTURES_FOLDER = File.join(File.dirname(__FILE__), 'pictures')
 
 class Raspicture < Gosu::Window
-  def initialize(source_folder)
+  def initialize(source_folder, cycle_time)
     super Gosu::screen_width, Gosu::screen_height, fullscreen: true, update_interval: 100
     self.caption = 'PictureFrame'
+    
+    @cycle_time = cycle_time
     
     @files = Dir["#{source_folder}/*.{png,jpeg,jpg}"]
     @target_image_index = Gosu::random(0, @files.size).floor
@@ -20,9 +22,12 @@ class Raspicture < Gosu::Window
     return if @target_image
     
     if @target_image_index != @current_image_index
+      @last_auto_cycle = Time.now
       @target_image = Gosu::Image.new @files[@target_image_index]
       @current_image_index = @target_image_index
     end
+    
+    next_image if Time.now - @last_auto_cycle > @cycle_time
   end
   
   def draw
@@ -80,7 +85,7 @@ class Raspicture < Gosu::Window
   end
 end
 
-raspicture = Raspicture.new(PICTURES_FOLDER)
+raspicture = Raspicture.new(PICTURES_FOLDER, 30 * 60)
 
 web_server = WEBrick::HTTPServer.new :Port => 1234
 
