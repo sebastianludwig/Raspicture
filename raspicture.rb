@@ -12,7 +12,7 @@ class Raspicture < Gosu::Window
     
     @cycle_time = cycle_time
     
-    @files = Dir["#{source_folder}/*.{png,jpeg,jpg}"]
+    refresh_file_list
     @target_image_index = Gosu::random(0, @files.size).floor
     
     @target_image_blend = 0.0
@@ -66,6 +66,10 @@ class Raspicture < Gosu::Window
     close if key == Gosu::KbEscape
   end
   
+  def refresh_file_list
+    @files = Dir["#{PICTURES_FOLDER}/*.{png,jpeg,jpg}"]
+  end
+  
   def next_image
     @target_image_index = (@target_image_index + 1) % @files.size
   end
@@ -89,9 +93,13 @@ raspicture = Raspicture.new(PICTURES_FOLDER, 30 * 60)
 
 web_server = WEBrick::HTTPServer.new :Port => 1234
 
+web_server.mount_proc('/index') do |req, res| 
+  raspicture.refresh_file_list
+  res.body = IO.read File.join(File.dirname(__FILE__), 'index.html')
+end
 web_server.mount_proc('/next') { |req, res| raspicture.next_image }
 web_server.mount_proc('/prev') { |req, res| raspicture.previous_image }
-web_server.mount_proc('/index') { |req, res| res.body = raspicture.list_images }
+web_server.mount_proc('/list') { |req, res| res.body = raspicture.list_images }
 web_server.mount_proc('/show') { |req, res| raspicture.show_image(req.query['image']) }
 web_server.mount_proc('/image/') do |req, res|
   extension = File.extname(req.path).slice(1..-1)
@@ -109,7 +117,7 @@ end
 
 # HINT ['INT', 'TERM'].each ...?
 trap('INT') do
-  picture_frame.close
+  raspicture.close
   web_server.stop
   web_thread.join
 end
