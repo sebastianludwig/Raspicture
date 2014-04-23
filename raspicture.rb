@@ -95,6 +95,7 @@ web_server = WEBrick::HTTPServer.new :Port => 1234
 
 web_server.mount_proc('/index') do |req, res| 
   raspicture.refresh_file_list
+  res['Content-Type'] = 'text/html; charset=utf-8'
   res.body = IO.read File.join(File.dirname(__FILE__), 'index.html')
 end
 web_server.mount_proc('/next') { |req, res| raspicture.next_image }
