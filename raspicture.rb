@@ -102,7 +102,7 @@ web_server.mount_proc('/prev') { |req, res| raspicture.previous_image }
 web_server.mount_proc('/list') { |req, res| res.body = raspicture.list_images }
 web_server.mount_proc('/show') { |req, res| raspicture.show_image(req.query['image']) }
 web_server.mount_proc('/image/') do |req, res|
-  extension = File.extname(req.path).slice(1..-1)
+  extension = File.extname(req.path).slice(1..-1).downcase
   extension = 'jpeg' if extension == 'jpg'
   res['Content-Type'] = "image/#{extension}"
   res.body = IO.binread File.join(PICTURES_FOLDER, File.basename(req.path))
