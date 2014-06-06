@@ -3,7 +3,7 @@ require 'gosu/preview'
 require 'webrick'
 require 'JSON'
 
-PICTURES_FOLDER = File.join(File.dirname(__FILE__), 'pictures')
+PICTURES_FOLDER = ARGV[1] || File.join(File.dirname(__FILE__), 'pictures')
 
 class Raspicture < Gosu::Window
   def initialize(source_folder, cycle_time)
@@ -91,7 +91,7 @@ end
 
 raspicture = Raspicture.new(PICTURES_FOLDER, 30 * 60)
 
-web_server = WEBrick::HTTPServer.new :Port => 80
+web_server = WEBrick::HTTPServer.new :Port => (ARGV[0] || 80)
 
 index_action = Proc.new do |req, res| 
   raspicture.refresh_file_list
