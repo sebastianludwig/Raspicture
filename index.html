@@ -36,7 +36,7 @@
           image_names.forEach(function(name) {
             var link = $('<a href="show?image=' + name + '" class="preview" data-name="' + name + '">')
             link.click(show_action)
-            link.append($('<img src="image/' + name + '" />'))
+            link.append($('<img src="images/' + name + '" />'))
             list.append($('<li>').append(link))
           })
         })

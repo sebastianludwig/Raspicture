@@ -91,18 +91,20 @@ end
 
 raspicture = Raspicture.new(PICTURES_FOLDER, 30 * 60)
 
-web_server = WEBrick::HTTPServer.new :Port => 1234
+web_server = WEBrick::HTTPServer.new :Port => 80
 
-web_server.mount_proc('/index') do |req, res| 
+index_action = Proc.new do |req, res| 
   raspicture.refresh_file_list
   res['Content-Type'] = 'text/html; charset=utf-8'
   res.body = IO.read File.join(File.dirname(__FILE__), 'index.html')
 end
+web_server.mount_proc('/index', index_action)
+web_server.mount_proc('/', index_action)
 web_server.mount_proc('/next') { |req, res| raspicture.next_image }
 web_server.mount_proc('/prev') { |req, res| raspicture.previous_image }
 web_server.mount_proc('/list') { |req, res| res.body = raspicture.list_images }
 web_server.mount_proc('/show') { |req, res| raspicture.show_image(req.query['image']) }
-web_server.mount_proc('/image/') do |req, res|
+web_server.mount_proc('/images/') do |req, res|
   extension = File.extname(req.path).slice(1..-1).downcase
   extension = 'jpeg' if extension == 'jpg'
   res['Content-Type'] = "image/#{extension}"
@@ -129,5 +131,5 @@ web_server.stop
 
 web_thread.join
 
-print 'clean exit - yay'
+puts 'clean exit - yay'
 
