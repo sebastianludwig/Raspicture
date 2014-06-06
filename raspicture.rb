@@ -1,7 +1,7 @@
 require 'gosu'
 require 'gosu/preview'
 require 'webrick'
-require 'JSON'
+require 'json'
 
 PICTURES_FOLDER = ARGV[1] || File.join(File.dirname(__FILE__), 'pictures')
 
