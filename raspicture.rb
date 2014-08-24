@@ -105,6 +105,8 @@ web_server.mount_proc('/next') { |req, res| raspicture.next_image }
 web_server.mount_proc('/prev') { |req, res| raspicture.previous_image }
 web_server.mount_proc('/list') { |req, res| res.body = raspicture.list_images }
 web_server.mount_proc('/show') { |req, res| raspicture.show_image(req.query['image']) }
+web_server.mount_proc('/shutdown') { |req, res| `shutdown -h now` if is_raspberry? }
+web_server.mount_proc('/reboot') { |req, res| `reboot` if is_raspberry? }
 web_server.mount_proc('/images/') do |req, res|
   extension = File.extname(req.path).slice(1..-1).downcase
   extension = 'jpeg' if extension == 'jpg'

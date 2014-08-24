@@ -12,6 +12,20 @@
     
     <script type='text/javascript'>
       $( document ).ready( function() {
+        $('#reboot').click(function(event) {
+          event.preventDefault()
+          $.ajax("/reboot").done(function(data) {
+            alert("Rebooting now..")
+          })
+        })
+
+        $('#shutdown').click(function(event) {
+          event.preventDefault()
+          $.ajax("/shutdown").done(function(data) {
+            alert("Shutting down now..")
+          })
+        })
+
         $('#prev').click(function(event) {
           event.preventDefault()
           $.ajax("/prev")
@@ -47,18 +61,33 @@
     <style type="text/css">
       * {
         box-sizing: border-box;
+        font-family: sans-serif;
+      }
+
+      a {
+        color: black;
+        text-decoration: none;
+      }
+
+      #controls {
+        display: inline-block;
+        width: 100%;
+        text-align: center;
+      }
+
+      #controls a {
+        padding: 40px;
       }
 
       #prev, #next {
         position: fixed;
         top: 0px;
-        width: 5%;
+        width: 10%;
         height: 100%;
         text-align: center;
         padding-top: 20%;
-	      text-decoration: none;
-	      color: black;
-	      font-size: 50pt;
+        color: black;
+        font-size: 50pt;
       }
 
       #prev {
@@ -71,15 +100,14 @@
       
       #list {
         width: 100%;
-        padding: 0% 5%;
-        margin: 0px;
+        padding: 0% 10%;
       }
 
       #list li {
         list-style: none;
         display: inline-block;
         width: 25%;
-        height: 100px;
+        height: 60px;
         padding: 4px;
         vertical-align: top;
       }
@@ -99,10 +127,14 @@
     </style>
   </head>
   <body>
-    <a id="prev" href="/prev">❮</a>
+    <div id="controls">
+  	 <a id="reboot" href="/reboot">Reboot</a>
+     <a id="shutdown" href="/shutdown">Shutdown</a>
+    </div>
+    <a id="prev" href="/prev">&lt;</a>
     <ul id="list">
       <li>element</li>
     </ul>
-    <a id="next" href="/next">❯</a>
+    <a id="next" href="/next">&gt;</a>
   <body>
 </html>
