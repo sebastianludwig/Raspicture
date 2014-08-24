@@ -5,10 +5,14 @@ require 'json'
 
 PICTURES_FOLDER = ARGV[1] || File.join(File.dirname(__FILE__), 'pictures')
 
+def is_raspberry?
+  `uname` == "Linux\n"
+end
+
 class Raspicture < Gosu::Window
   def initialize(source_folder, cycle_time)
     # use Gosu::screen_width and _height once it's working
-    super 1024, 768, fullscreen: true, update_interval: 100
+    super 1024, 768, fullscreen: is_raspberry?, update_interval: 100
     self.caption = 'PictureFrame'
     
     @cycle_time = cycle_time
