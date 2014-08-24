@@ -48,6 +48,7 @@ class Raspicture < Gosu::Window
       if @target_image_blend >= 1
         @current_image = @target_image
         @target_image = nil
+        GC.start
         @target_image_blend = 0
       end
     end
