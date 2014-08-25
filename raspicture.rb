@@ -10,41 +10,45 @@ def is_raspberry?
 end
 
 class Raspicture < Gosu::Window
+  attr_accessor :scale_mode
+
   def initialize(source_folder, cycle_time)
     # use Gosu::screen_width and _height once it's working
     super 1024, 768, fullscreen: is_raspberry?, update_interval: 100
     self.caption = 'PictureFrame'
-    
+
     @cycle_time = cycle_time
-    
+
     refresh_file_list
     @target_image_index = Gosu::random(0, @files.size).floor
-    
+
     @target_image_blend = 0.0
+
+    @scale_mode = :aspect_fill
   end
-  
+
   def update
     return if @target_image
-    
+
     if @target_image_index != @current_image_index
       @last_auto_cycle = Time.now
       @target_image = Gosu::Image.new @files[@target_image_index]
       @current_image_index = @target_image_index
     end
-    
+
     next_image if Time.now - @last_auto_cycle > @cycle_time
   end
-  
+
   def draw
     if @current_image
       draw_image @current_image, 0, 1 - @target_image_blend
     end
-    
+
     if @target_image
       draw_image @target_image, 1, @target_image_blend
-      
+
       @target_image_blend += 0.1
-      
+
       if @target_image_blend >= 1
         @current_image = @target_image
         @target_image = nil
@@ -53,41 +57,49 @@ class Raspicture < Gosu::Window
       end
     end
   end
-  
+
   def draw_image(image, z_index, blend)
-    # TODO implement different scale modes
-    
-    x_scale = width / image.width.to_f
-    y_scale = height / image.height.to_f
-    scale = [x_scale, y_scale].min
+    case @scale_mode
+    when :aspect_fit
+        x_scale = width / image.width.to_f
+        y_scale = height / image.height.to_f
+        scale = [x_scale, y_scale].min
+    when :aspect_fill
+        x_scale = width / image.width.to_f
+        y_scale = height / image.height.to_f
+        scale = [x_scale, y_scale].max
+    end
+
     x = (width - image.width * scale) / 2
     y = (height - image.height * scale) / 2
-    
+
     color = Gosu::Color.new blend * 255, 255, 255, 255
-    
+
     image.draw(x, y, z_index, scale, scale, color)
   end
-  
+
   def button_down(key)
     close if key == Gosu::KbEscape
+    next_image if key == Gosu::KbRight
+    previous_image if key == Gosu::KbLeft
   end
-  
+
   def refresh_file_list
     @files = Dir["#{PICTURES_FOLDER}/*.{png,jpeg,jpg}"]
   end
-  
+
   def next_image
     @target_image_index = (@target_image_index + 1) % @files.size
   end
-  
+
   def previous_image
     @target_image_index = (@target_image_index - 1) % @files.size
   end
-  
+
   def list_images
     JSON.generate @files.map { |file| File.basename(file) }
   end
-  
+
   def show_image(name)
     index = @files.index { |file| File.basename(file) == name }
     return if index.nil?
@@ -99,7 +111,7 @@ raspicture = Raspicture.new(PICTURES_FOLDER, 30 * 60)
 
 web_server = WEBrick::HTTPServer.new :Port => (ARGV[0] || 80)
 
-index_action = Proc.new do |req, res| 
+index_action = Proc.new do |req, res|
   raspicture.refresh_file_list
   res['Content-Type'] = 'text/html; charset=utf-8'
   res.body = IO.read File.join(File.dirname(__FILE__), 'index.html')
@@ -112,6 +124,8 @@ web_server.mount_proc('/list') { |req, res| res.body = raspicture.list_images }
 web_server.mount_proc('/show') { |req, res| raspicture.show_image(req.query['image']) }
 web_server.mount_proc('/shutdown') { |req, res| `shutdown -h now` if is_raspberry? }
 web_server.mount_proc('/reboot') { |req, res| `reboot` if is_raspberry? }
+web_server.mount_proc('/fill') { |req, res| raspicture.scale_mode = :aspect_fill }
+web_server.mount_proc('/fit') { |req, res| raspicture.scale_mode = :aspect_fit }
 web_server.mount_proc('/images/') do |req, res|
   extension = File.extname(req.path).slice(1..-1).downcase
   extension = 'jpeg' if extension == 'jpg'
