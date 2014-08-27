@@ -31,6 +31,18 @@
           $.ajax($(this).attr('href'))
         })
 
+        $('#controls select').blur(function () {
+            $('#controls select').prop('selectedIndex', 0)
+        })
+
+        $('#controls select').change(function() {
+            var target = $('#controls select option:selected').data('href')
+            if (target) {
+                $.ajax(target)
+            }
+            $('#controls select').prop('selectedIndex', 0)
+        })
+
         $.ajax({
           url: "/list",
           beforeSend: function(xhr) {
@@ -59,19 +71,31 @@
         font-family: sans-serif;
       }
 
+      body {
+        margin: 0px;
+      }
+
       a {
         color: black;
         text-decoration: none;
       }
 
       #controls {
-        display: inline-block;
+        position: fixed;
+        padding-top: 4px;
+        height: 55px;
         width: 100%;
+        z-index: 1;
         text-align: center;
+        background-color: rgba(255, 255, 255, 0.8);
       }
 
-      #controls a {
-        padding: 40px;
+      #controls select {
+        font-size: 20pt;
+        line-height: 1.5;
+        text-indent: 20px;
+        appearance: none;
+        -webkit-appearance: none;
       }
 
       #prev, #next {
@@ -82,20 +106,21 @@
         text-align: center;
         padding-top: 20%;
         color: black;
-        font-size: 50pt;
+        font-size: 15vw;
       }
 
       #prev {
-        left: 0px;
+        left: 1%;
       }
 
       #next {
-        right: 0px;
+        right: 1%;
       }
 
       #list {
         width: 100%;
-        padding: 0% 10%;
+        padding: 55px 11%;
+        z-index: 0;
       }
 
       #list li {
@@ -123,10 +148,17 @@
   </head>
   <body>
     <div id="controls">
-      <a id="fit" href="/fit">Fit</a>
-      <a id="fill" href="/fill">Fill</a>
-  	  <a id="reboot" href="/reboot">Reboot</a>
-      <a id="shutdown" href="/shutdown">Shutdown</a>
+        <select>
+            <option >Action...</option>
+            <optgroup label="Scale">
+                <option data-href="/fit">Fit</option>
+                <option data-href="/fill">Fill</option>
+            </optgroup>
+            <optgroup label="Power">
+                <option data-href="/reboot">Reboot</option>
+                <option data-href="/shutdown">Shutdown</option>
+            </optgroup>
+        </select>
     </div>
     <a id="prev" href="/prev">&lt;</a>
     <ul id="list">
