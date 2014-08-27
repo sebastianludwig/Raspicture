@@ -5,6 +5,7 @@ end
 require 'gosu/preview'
 
 PICTURES_FOLDER = ARGV[1] || File.join(File.dirname(__FILE__), 'pictures')
+THUMBNAILS_FOLDER = File.join(File.dirname(__FILE__), 'thumbnails')
 
 def is_raspberry?
   `uname` == "Linux\n"
@@ -127,12 +128,28 @@ web_server.mount_proc('/reboot') { |req, res| `reboot` if is_raspberry? }
 web_server.mount_proc('/fill') { |req, res| raspicture.scale_mode = :aspect_fill }
 web_server.mount_proc('/fit') { |req, res| raspicture.scale_mode = :aspect_fit }
 web_server.mount_proc('/images/') do |req, res|
+
+  thumbnail_path = File.join(THUMBNAILS_FOLDER, File.basename(req.path))
+  unless File.exist? thumbnail_path
+    picture_path = File.join(PICTURES_FOLDER, File.basename(req.path))
+    image = MiniMagick::Image.open(picture_path)
+    image.resize "100x100"
+    image.write thumbnail_path
+    puts "writte #{thumbnail_path}"
+  end
+
   extension = File.extname(req.path).slice(1..-1).downcase
   extension = 'jpeg' if extension == 'jpg'
   res['Content-Type'] = "image/#{extension}"
-  res.body = IO.binread File.join(PICTURES_FOLDER, File.basename(req.path))
+
+  res.body = IO.binread thumbnail_path
 end
 
+
+# thumbnail cleanup
+Dir.foreach(THUMBNAILS_FOLDER) do |filename|
+  File.delete(File.join(THUMBNAILS_FOLDER, filename)) unless File.exist? File.join(PICTURES_FOLDER, filename)
+end
 
 
 web_thread = Thread.new do
