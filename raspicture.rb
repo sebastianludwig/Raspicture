@@ -129,11 +129,16 @@ web_server.mount_proc('/fill') { |req, res| raspicture.scale_mode = :aspect_fill
 web_server.mount_proc('/fit') { |req, res| raspicture.scale_mode = :aspect_fit }
 web_server.mount_proc('/images/') do |req, res|
 
+  picture_path = File.join(PICTURES_FOLDER, File.basename(req.path))
   thumbnail_path = File.join(THUMBNAILS_FOLDER, File.basename(req.path))
-  unless File.exist? thumbnail_path
-    picture_path = File.join(PICTURES_FOLDER, File.basename(req.path))
+  if not File.exist?(thumbnail_path) or File.ctime(picture_path) > File.ctime(thumbnail_path)
     image = MiniMagick::Image.open(picture_path)
-    image.resize "100x100"
+    image.combine_options do |c|
+      c.auto_orient
+      c.thumbnail "100x100^"
+      c.gravity "center"
+      c.extent "100x100"
+    end
     image.write thumbnail_path
     puts "writte #{thumbnail_path}"
   end
