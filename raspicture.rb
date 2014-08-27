@@ -1,7 +1,8 @@
-require 'gosu'
+require 'bundler'
+Dir.chdir File.dirname(__FILE__) do
+  Bundler.require(:default)
+end
 require 'gosu/preview'
-require 'webrick'
-require 'json'
 
 PICTURES_FOLDER = ARGV[1] || File.join(File.dirname(__FILE__), 'pictures')
 
@@ -13,8 +14,7 @@ class Raspicture < Gosu::Window
   attr_accessor :scale_mode
 
   def initialize(source_folder, cycle_time)
-    # use Gosu::screen_width and _height once it's working
-    super 1024, 768, fullscreen: is_raspberry?, update_interval: 100
+    super Gosu::screen_width, Gosu::screen_height, fullscreen: is_raspberry?, update_interval: 100
     self.caption = 'PictureFrame'
 
     @cycle_time = cycle_time
